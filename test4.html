@@ -12,6 +12,7 @@
       display: flex;
       justify-content: center;
       align-items: center;
+      flex-direction: column;
       background-color: #f0f0f0;
     }
     .square {
@@ -19,7 +20,10 @@
       height: 100px;
       position: absolute;
       background-color: #3498db;  /* Default color */
-      transition: background-color 0.3s ease;
+    }
+    .slider-container {
+      margin-top: 20px;
+      text-align: center;
     }
   </style>
 </head>
@@ -27,9 +31,18 @@
 
   <div id="square" class="square"></div>
 
+  <div class="slider-container">
+    <label for="thresholdSlider">Threshold: </label>
+    <input type="range" id="thresholdSlider" min="0" max="1" step="0.01" value="0.2">
+    <span id="thresholdValue">0.2</span>
+  </div>
+
   <script>
     const square = document.getElementById('square');
-    const threshold = 0.2;  // Loudness threshold for changing color (can adjust for sensitivity)
+    const thresholdSlider = document.getElementById('thresholdSlider');
+    const thresholdValue = document.getElementById('thresholdValue');
+
+    let threshold = parseFloat(thresholdSlider.value);  // Initial threshold
 
     // Set up Web Audio API
     const audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -87,6 +100,13 @@
       // Continue monitoring the audio
       requestAnimationFrame(monitorAudio);
     }
+
+    // Update the threshold value dynamically when the slider changes
+    thresholdSlider.addEventListener('input', (event) => {
+      threshold = parseFloat(event.target.value);  // Update threshold value
+      thresholdValue.textContent = threshold.toFixed(2);  // Show the updated threshold
+    });
+
   </script>
 
 </body>
