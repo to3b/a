@@ -43,21 +43,17 @@
 
   <script>
     const topSquare = document.getElementById('top-square');
-    
-    // The maximum upward movement (in percentage) at full volume.
-    const maxHeight = 50;
+    const maxHeight = 50;  // Max upward movement percentage (0-100%)
 
-    // Set up the Web Audio API to capture sound volume.
     const audioContext = new (window.AudioContext || window.webkitAudioContext)();
     const analyser = audioContext.createAnalyser();
     analyser.fftSize = 256;
     const bufferLength = analyser.frequencyBinCount;
     const dataArray = new Uint8Array(bufferLength);
 
-    // Request microphone access.
     navigator.mediaDevices.getUserMedia({ audio: true })
       .then(stream => {
-        console.log("Microphone access granted");
+        console.log("Microphone access granted.");
         const source = audioContext.createMediaStreamSource(stream);
         source.connect(analyser);
         monitorAudio();
@@ -69,33 +65,27 @@
     function monitorAudio() {
       analyser.getByteFrequencyData(dataArray);
 
-      // Calculate the average volume.
       let sum = 0;
       for (let i = 0; i < bufferLength; i++) {
         sum += dataArray[i];
       }
 
       const averageLoudness = sum / bufferLength;
-      // Normalize the volume between 0 (quiet) and 1 (max volume)
-      const normalizedLoudness = averageLoudness / 255;
+      const normalizedLoudness = averageLoudness / 255; // Normalize between 0 and 1
 
-      // Log the normalized loudness to the console for debugging.
+      // Log the loudness for debugging
       console.log("Normalized Loudness:", normalizedLoudness);
 
-      // Calculate the upward movement.
-      // At silence normalizedLoudness = 0 → movement = 0,
-      // at full volume normalizedLoudness = 1 → movement = 50.
+      // Calculate movement as a percentage of maxHeight
       const movement = normalizedLoudness * maxHeight;
-
-      // Log the calculated movement value for debugging.
+      
+      // Log the calculated movement for debugging
       console.log("Calculated Movement (top value):", movement);
 
-      // Set the top property of the top square.
-      // The square moves upward (negative top values) as volume increases.
-      topSquare.style.top = `${-movement}%`;
+      // Apply the calculated top position
+      topSquare.style.top = `${-movement}%`; // Negative value to move the square upwards
 
-      // Continue monitoring.
-      requestAnimationFrame(monitorAudio);
+      requestAnimationFrame(monitorAudio); // Continue monitoring
     }
   </script>
 
