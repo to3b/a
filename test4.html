@@ -1,78 +1,44 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Mic Volume Motion</title>
-  <style>
-    body {
-      margin: 0;
-      height: 100vh;
-      background: #111;
-      display: flex;
-      justify-content: center;
-      align-items: flex-end;
-      overflow: hidden;
-    }
-    #character {
-      width: 100px;
-      height: 100px;
-      background: #f77;
-      border-radius: 20px;
-      position: absolute;
-      bottom: 50px; /* baseline */
-      transition: bottom 0.1s linear;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fixed Div Example</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .content {
+            height: 1000px; /* Just for demonstration purposes */
+            background-color: #f0f0f0;
+        }
+
+        .fixed-div {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background-color: #333;
+            color: white;
+            text-align: center;
+            padding: 10px;
+            z-index: 1000; /* Ensures it stays on top of other content */
+        }
+    </style>
 </head>
 <body>
-  <div id="character"></div>
 
-  <script>
-    const character = document.getElementById("character");
-    let baseline = 50; // starting 'bottom' in px
-    let maxLift = 150; // how high it can go
-    let volume = 0;
+<div class="content">
+    <h1>Scroll down to see the fixed div!</h1>
+    <p>More content goes here...</p>
+</div>
 
-    // Setup mic input and analyze loudness
-    navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
-      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-      const mic = audioContext.createMediaStreamSource(stream);
-      const analyser = audioContext.createAnalyser();
-      analyser.fftSize = 512;
+<div class="fixed-div">
+    This div stays at the bottom and doesn't move!
+</div>
 
-      const dataArray = new Uint8Array(analyser.fftSize);
-      mic.connect(analyser);
-
-      function updateVolume() {
-        analyser.getByteTimeDomainData(dataArray);
-        let sum = 0;
-        for (let i = 0; i < dataArray.length; i++) {
-          const deviation = dataArray[i] - 128;
-          sum += deviation * deviation;
-        }
-        const rms = Math.sqrt(sum / dataArray.length);
-        volume = rms;
-        requestAnimationFrame(updateVolume);
-      }
-
-      updateVolume();
-
-      function animate() {
-        // convert volume to lift amount (scale it)
-        const lift = Math.min(volume * 5, maxLift); // scale and cap lift
-        const newBottom = baseline + lift;
-
-        character.style.bottom = `${newBottom}px`;
-
-        // loop animation
-        requestAnimationFrame(animate);
-      }
-
-      animate();
-
-    }).catch(err => {
-      console.error("Mic access error:", err);
-    });
-  </script>
 </body>
 </html>
