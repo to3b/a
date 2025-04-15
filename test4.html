@@ -20,7 +20,7 @@
       width: 100px;
       height: 100px;
       position: absolute;
-      transition: top 0.1s ease-in-out;
+      transition: top 0.1s ease-in-out; /* Smooth transition for movement */
     }
     #top-square {
       top: 0%; /* Baseline: exactly on top of the bottom square */
@@ -43,7 +43,7 @@
 
   <script>
     const topSquare = document.getElementById('top-square');
-
+    
     // The maximum upward movement (in percentage) at full volume.
     const maxHeight = 50;
 
@@ -86,7 +86,10 @@
       // At silence normalizedLoudness = 0 → movement = 0,
       // at full volume normalizedLoudness = 1 → movement = 50.
       const movement = normalizedLoudness * maxHeight;
-      
+
+      // Log the calculated movement value for debugging.
+      console.log("Calculated Movement (top value):", movement);
+
       // Set the top property of the top square.
       // The square moves upward (negative top values) as volume increases.
       topSquare.style.top = `${-movement}%`;
