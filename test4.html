@@ -22,11 +22,11 @@
             height: 100px;
             background-color: #3498db;
             position: absolute;
-            transition: top 0.3s ease; /* Smooth transition for moving the top square */
+            transition: top 0.1s ease-in-out; /* Smooth transition for the top square */
         }
 
         #top-square {
-            top: 50%;
+            top: 50%; /* Initial position at the baseline */
         }
 
         #bottom-square {
@@ -41,48 +41,55 @@
 <div id="bottom-square" class="square"></div>
 
 <script>
+    // Access the top square element
     const topSquare = document.getElementById('top-square');
     const bottomSquare = document.getElementById('bottom-square');
 
-    let isSpeaking = false;
+    // Set the initial position of the top square
+    const baseline = 50; // Baseline at 50% from the top
+    const maxHeight = 20; // Maximum height (how far the square can move up)
 
-    // Set up the voice recognition
-    const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-    recognition.lang = 'en-US';
-    recognition.continuous = false;
-    recognition.interimResults = false;
+    // Set up the audio context to measure voice loudness
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    const analyser = audioContext.createAnalyser();
+    analyser.fftSize = 256;
+    const bufferLength = analyser.frequencyBinCount;
+    const dataArray = new Uint8Array(bufferLength);
 
-    recognition.onstart = function() {
-        console.log("Voice recognition started.");
-        isSpeaking = true;
-        topSquare.style.top = "40%";  // Move the top square up when speaking
-    };
+    // Get access to the user's microphone
+    navigator.mediaDevices.getUserMedia({ audio: true })
+        .then(stream => {
+            const source = audioContext.createMediaStreamSource(stream);
+            source.connect(analyser);
+            monitorAudio();
+        })
+        .catch(error => {
+            console.error('Error accessing microphone', error);
+        });
 
-    recognition.onend = function() {
-        console.log("Voice recognition stopped.");
-        isSpeaking = false;
-        topSquare.style.top = "50%";  // Move the top square back to baseline when not speaking
-    };
+    // Monitor the loudness of the sound
+    function monitorAudio() {
+        analyser.getByteFrequencyData(dataArray);
 
-    recognition.onresult = function(event) {
-        // You can listen for words, but for now, just the presence of sound is enough
-        const command = event.results[0][0].transcript;
-        console.log("Heard:", command);
-    };
-
-    recognition.onerror = function(event) {
-        console.error("Voice recognition error", event.error);
-    };
-
-    // Start listening for voice commands
-    recognition.start();
-
-    // Continuously monitor the microphone input to determine if someone is speaking
-    setInterval(function() {
-        if (!isSpeaking) {
-            topSquare.style.top = "50%";  // Reset top square to baseline if no speech
+        // Get the average loudness
+        let sum = 0;
+        for (let i = 0; i < bufferLength; i++) {
+            sum += dataArray[i];
         }
-    }, 2000);  // Check every 2 seconds if the user isn't speaking
+
+        const averageLoudness = sum / bufferLength;
+        const normalizedLoudness = averageLoudness / 255; // Normalize to 0 - 1 range
+
+        // Calculate how much to move the square
+        const movement = (1 - normalizedLoudness) * maxHeight;
+
+        // Move the square based on the loudness of the voice
+        topSquare.style.top = `${baseline - movement}%`; // Move up based on loudness
+
+        // Continue monitoring audio in real-time
+        requestAnimationFrame(monitorAudio);
+    }
+
 </script>
 
 </body>
