@@ -2,46 +2,77 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Voice-to-Text Example</title>
+  <title>Mic Volume Motion</title>
+  <style>
+    body {
+      margin: 0;
+      height: 100vh;
+      background: #111;
+      display: flex;
+      justify-content: center;
+      align-items: flex-end;
+      overflow: hidden;
+    }
+    #character {
+      width: 100px;
+      height: 100px;
+      background: #f77;
+      border-radius: 20px;
+      position: absolute;
+      bottom: 50px; /* baseline */
+      transition: bottom 0.1s linear;
+    }
+  </style>
 </head>
 <body>
-  <h1>Say something...</h1>
-  <p id="output">Waiting for speech...</p>
+  <div id="character"></div>
+
   <script>
-    // Check if SpeechRecognition is supported
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SpeechRecognition) {
-      alert("Sorry, your browser does not support Speech Recognition.");
-    } else {
-      const recognition = new SpeechRecognition();
-      recognition.lang = 'en-US'; // Set language to English
-      recognition.continuous = true; // Keep recognizing speech
-      recognition.interimResults = true; // Show interim results while listening
+    const character = document.getElementById("character");
+    let baseline = 50; // starting 'bottom' in px
+    let maxLift = 150; // how high it can go
+    let volume = 0;
 
-      // Start recognition when microphone is activated
-      recognition.start();
+    // Setup mic input and analyze loudness
+    navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
+      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      const mic = audioContext.createMediaStreamSource(stream);
+      const analyser = audioContext.createAnalyser();
+      analyser.fftSize = 512;
 
-      // Process the results
-      recognition.onresult = function(event) {
-        let transcript = event.results[event.results.length - 1][0].transcript.toLowerCase(); // Get the last result
-        console.log("You said: ", transcript); // Log what the user said
-        
-        if (transcript.includes("yes")) {
-          document.getElementById("output").textContent = "Yes"; // Change the text to "Yes" when user says "yes"
+      const dataArray = new Uint8Array(analyser.fftSize);
+      mic.connect(analyser);
+
+      function updateVolume() {
+        analyser.getByteTimeDomainData(dataArray);
+        let sum = 0;
+        for (let i = 0; i < dataArray.length; i++) {
+          const deviation = dataArray[i] - 128;
+          sum += deviation * deviation;
         }
-      };
+        const rms = Math.sqrt(sum / dataArray.length);
+        volume = rms;
+        requestAnimationFrame(updateVolume);
+      }
 
-      // Handle errors (e.g., user denies microphone access)
-      recognition.onerror = function(event) {
-        console.error("Error occurred in speech recognition: ", event.error);
-      };
+      updateVolume();
 
-      // Handle when recognition ends (user stops speaking)
-      recognition.onend = function() {
-        console.log("Speech recognition ended.");
-      };
-    }
+      function animate() {
+        // convert volume to lift amount (scale it)
+        const lift = Math.min(volume * 5, maxLift); // scale and cap lift
+        const newBottom = baseline + lift;
+
+        character.style.bottom = `${newBottom}px`;
+
+        // loop animation
+        requestAnimationFrame(animate);
+      }
+
+      animate();
+
+    }).catch(err => {
+      console.error("Mic access error:", err);
+    });
   </script>
 </body>
 </html>
