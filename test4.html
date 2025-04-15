@@ -3,32 +3,33 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Voice-Controlled Box Movement</title>
+  <title>Voice-Controlled Box Change</title>
   <style>
+    body {
+      margin: 0;
+      padding: 0;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background-color: #f0f0f0;
+    }
     .square {
       width: 100px;
       height: 100px;
       position: absolute;
-      transition: top 0.1s ease-in-out;
-      bottom: 0%;
-    }
-    #top-square {
-      background-color: #3498db;
-      transform: translateY(-100px);
-    }
-    #bottom-square {
-      background-color: #e74c3c;
+      background-color: #3498db;  /* Default color */
+      transition: background-color 0.3s ease;
     }
   </style>
 </head>
 <body>
 
-  <div id="top-square" class="square"></div>
-  <div id="bottom-square" class="square"></div>
+  <div id="square" class="square"></div>
 
   <script>
-    const topSquare = document.getElementById('top-square');
-    const maxHeight = 50;  // Maximum upward movement in percentage (0-100%)
+    const square = document.getElementById('square');
+    const threshold = 0.2;  // Loudness threshold for changing color (can adjust for sensitivity)
 
     // Set up Web Audio API
     const audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -57,7 +58,7 @@
         console.error('Error accessing microphone:', error);
       });
 
-    // Function to monitor audio levels and move the square based on volume
+    // Function to monitor audio levels and change the color of the square based on volume
     function monitorAudio() {
       analyser.getByteTimeDomainData(dataArray);  // Get waveform data from the audio stream
 
@@ -71,14 +72,17 @@
       const averageLoudness = sum / bufferLength;
       const normalizedLoudness = averageLoudness / 128; // Normalize to a 0-1 scale (128 is the middle value)
 
-      // Increase sensitivity by multiplying by 100
-      const movement = normalizedLoudness * maxHeight * 3;  // Increase the movement by 100 times
+      // Log the loudness value for debugging
+      console.log("Loudness:", normalizedLoudness);
 
-      // Log the loudness and movement values for debugging
-      console.log("Loudness:", normalizedLoudness, "Movement:", movement);
-
-      // Move the top square according to the loudness (negative values move it up)
-      topSquare.style.bottom = `${movement}%`;  // Move the square upwards based on loudness
+      // Check if the loudness exceeds the threshold
+      if (normalizedLoudness > threshold) {
+        // Change the color to red if the loudness is above the threshold
+        square.style.backgroundColor = '#e74c3c';  // Red color for high sound
+      } else {
+        // Change back to blue when the loudness is below the threshold
+        square.style.backgroundColor = '#3498db';  // Blue color for quiet sound
+      }
 
       // Continue monitoring the audio
       requestAnimationFrame(monitorAudio);
