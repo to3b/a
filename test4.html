@@ -1,96 +1,93 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Voice Controlled Box</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            height: 100vh;
-            overflow: hidden;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            background-color: #ecf0f1;
-        }
-
-        .square {
-            width: 100px;
-            height: 100px;
-            position: absolute;
-            transition: top 0.1s ease-in-out; /* Smooth transition for the top square */
-        }
-
-        #top-square {
-            top: 0%; /* Start right on top of the bottom square (baseline) */
-            background-color: #3498db;
-        }
-
-        #bottom-square {
-            top: 10%; /* Bottom square positioned slightly below the baseline */
-            background-color: #e74c3c;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Voice-Controlled Box Movement</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      height: 100vh;
+      overflow: hidden;
+      background-color: #ecf0f1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+    }
+    .square {
+      width: 100px;
+      height: 100px;
+      position: absolute;
+      transition: top 0.1s ease-in-out;
+    }
+    #top-square {
+      top: 0%;    /* Baseline: exactly on top of the bottom square */
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: #3498db;
+    }
+    #bottom-square {
+      top: 120px;  /* Fixed position below the top square */
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: #e74c3c;
+    }
+  </style>
 </head>
 <body>
 
-<div id="top-square" class="square"></div>
-<div id="bottom-square" class="square"></div>
+  <div id="top-square" class="square"></div>
+  <div id="bottom-square" class="square"></div>
 
-<script>
-    // Access the top square element
+  <script>
     const topSquare = document.getElementById('top-square');
-    const bottomSquare = document.getElementById('bottom-square');
 
-    // Set the baseline and maximum height of the movement
-    const baseline = 0; // Baseline at 0% from the top (on top of the bottom square)
-    const maxHeight = 50; // Maximum height (how far the square can move up)
+    // The maximum upward movement (in percentage). When voice is at maximum level,
+    // the top-square will move from 0% to -maxHeight% (i.e. move upward).
+    const maxHeight = 50;
 
-    // Set up the audio context to measure voice loudness
+    // Set up the Web Audio API to capture sound volume
     const audioContext = new (window.AudioContext || window.webkitAudioContext)();
     const analyser = audioContext.createAnalyser();
     analyser.fftSize = 256;
     const bufferLength = analyser.frequencyBinCount;
     const dataArray = new Uint8Array(bufferLength);
 
-    // Get access to the user's microphone
+    // Request microphone access
     navigator.mediaDevices.getUserMedia({ audio: true })
-        .then(stream => {
-            const source = audioContext.createMediaStreamSource(stream);
-            source.connect(analyser);
-            monitorAudio();
-        })
-        .catch(error => {
-            console.error('Error accessing microphone', error);
-        });
+      .then(stream => {
+        const source = audioContext.createMediaStreamSource(stream);
+        source.connect(analyser);
+        monitorAudio();
+      })
+      .catch(error => {
+        console.error('Error accessing microphone', error);
+      });
 
-    // Monitor the loudness of the sound
     function monitorAudio() {
-        analyser.getByteFrequencyData(dataArray);
+      analyser.getByteFrequencyData(dataArray);
+      let sum = 0;
+      for (let i = 0; i < bufferLength; i++) {
+        sum += dataArray[i];
+      }
+      const averageLoudness = sum / bufferLength;
+      
+      // Normalize: 0 (quiet) to 1 (max volume)
+      const normalizedLoudness = averageLoudness / 255;
 
-        // Get the average loudness
-        let sum = 0;
-        for (let i = 0; i < bufferLength; i++) {
-            sum += dataArray[i];
-        }
+      // Calculate upward movement: 0 when quiet and maxHeight when at full volume.
+      const movement = normalizedLoudness * maxHeight;
+      
+      // Set the top property.
+      // At quiet (normalizedLoudness === 0), top becomes "0%"
+      // At max volume, top becomes "-maxHeight%"
+      topSquare.style.top = `${-movement}%`;
 
-        const averageLoudness = sum / bufferLength;
-        const normalizedLoudness = averageLoudness / 255; // Normalize to 0 - 1 range
-
-        // Calculate how much to move the square based on loudness
-        const movement = (1 - normalizedLoudness) * maxHeight;
-
-        // Move the square up based on loudness
-        topSquare.style.top = `${baseline - movement}%`; // Move up based on loudness
-
-        // Continue monitoring audio in real-time
-        requestAnimationFrame(monitorAudio);
+      requestAnimationFrame(monitorAudio);
     }
-
-</script>
+  </script>
 
 </body>
 </html>
