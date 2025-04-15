@@ -86,8 +86,8 @@
       const averageLoudness = sum / bufferLength;
       const normalizedLoudness = averageLoudness / 128; // Normalize to a 0-1 scale (128 is the middle value)
 
-      // Calculate how much the top square should move
-      const movement = normalizedLoudness * maxHeight;  // Movement proportional to loudness
+      // Increase sensitivity by multiplying by 100
+      const movement = normalizedLoudness * maxHeight * 100;  // Increase the movement by 100 times
 
       // Log the loudness and movement values for debugging
       console.log("Loudness:", normalizedLoudness, "Movement:", movement);
