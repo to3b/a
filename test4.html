@@ -66,17 +66,17 @@
 
     // Function to monitor audio levels and move the square based on volume
     function monitorAudio() {
-      analyser.getByteFrequencyData(dataArray);
+      analyser.getByteTimeDomainData(dataArray);  // Get waveform data from the audio stream
 
       let sum = 0;
-      // Calculate the average loudness from frequency data
+      // Calculate the average loudness by checking the amplitude of the waveform
       for (let i = 0; i < bufferLength; i++) {
-        sum += dataArray[i];
+        sum += Math.abs(dataArray[i] - 128);  // Get the absolute difference from the midpoint (128)
       }
 
       // Normalize the loudness (average value) to a range of 0 to 1
       const averageLoudness = sum / bufferLength;
-      const normalizedLoudness = averageLoudness / 255; // Normalize to a 0-1 scale
+      const normalizedLoudness = averageLoudness / 128; // Normalize to a 0-1 scale (128 is the middle value)
 
       // Calculate how much the top square should move
       const movement = normalizedLoudness * maxHeight;  // Movement proportional to loudness
