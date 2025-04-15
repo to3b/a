@@ -27,7 +27,7 @@
 
   <script>
     const topSquare = document.getElementById('top-square');
-    const maxHeight = 50;  // Maximum upward movement in percentage (0-100%)
+    const maxHeight = 100;  // Maximum upward movement in percentage (0-100%)
 
     // Set up Web Audio API
     const audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -77,7 +77,7 @@
       console.log("Loudness:", normalizedLoudness, "Movement:", movement);
 
       // Move the top square according to the loudness (negative values move it up)
-      topSquare.style.top = `${-movement}%`;  // Move the square upwards based on loudness
+      topSquare.style.bottom = `${-movement}%`;  // Move the square upwards based on loudness
 
       // Continue monitoring the audio
       requestAnimationFrame(monitorAudio);
