@@ -14,6 +14,7 @@
     }
     #top-square {
       background-color: #3498db;
+      transform: translateY(-100px);
     }
     #bottom-square {
       background-color: #e74c3c;
@@ -71,7 +72,7 @@
       const normalizedLoudness = averageLoudness / 128; // Normalize to a 0-1 scale (128 is the middle value)
 
       // Increase sensitivity by multiplying by 100
-      const movement = normalizedLoudness * maxHeight * 3;  // Increase the movement by 100 times
+      const movement = normalizedLoudness * maxHeight * 1;  // Increase the movement by 100 times
 
       // Log the loudness and movement values for debugging
       console.log("Loudness:", normalizedLoudness, "Movement:", movement);
