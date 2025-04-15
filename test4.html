@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Voice-to-Text Example</title>
+</head>
+<body>
+  <h1>Say something...</h1>
+  <p id="output">Waiting for speech...</p>
+  <script>
+    // Check if SpeechRecognition is supported
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      alert("Sorry, your browser does not support Speech Recognition.");
+    } else {
+      const recognition = new SpeechRecognition();
+      recognition.lang = 'en-US'; // Set language to English
+      recognition.continuous = true; // Keep recognizing speech
+      recognition.interimResults = true; // Show interim results while listening
+
+      // Start recognition when microphone is activated
+      recognition.start();
+
+      // Process the results
+      recognition.onresult = function(event) {
+        let transcript = event.results[event.results.length - 1][0].transcript.toLowerCase(); // Get the last result
+        console.log("You said: ", transcript); // Log what the user said
+        
+        if (transcript.includes("yes")) {
+          document.getElementById("output").textContent = "Yes"; // Change the text to "Yes" when user says "yes"
+        }
+      };
+
+      // Handle errors (e.g., user denies microphone access)
+      recognition.onerror = function(event) {
+        console.error("Error occurred in speech recognition: ", event.error);
+      };
+
+      // Handle when recognition ends (user stops speaking)
+      recognition.onend = function() {
+        console.log("Speech recognition ended.");
+      };
+    }
+  </script>
+</body>
+</html>
