@@ -57,6 +57,7 @@
     // Request microphone access.
     navigator.mediaDevices.getUserMedia({ audio: true })
       .then(stream => {
+        console.log("Microphone access granted");
         const source = audioContext.createMediaStreamSource(stream);
         source.connect(analyser);
         monitorAudio();
