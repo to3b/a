@@ -20,17 +20,17 @@
         .square {
             width: 100px;
             height: 100px;
-            background-color: #3498db;
             position: absolute;
             transition: top 0.1s ease-in-out; /* Smooth transition for the top square */
         }
 
         #top-square {
-            top: 50%; /* Initial position at the baseline */
+            top: 0%; /* Start right on top of the bottom square (baseline) */
+            background-color: #3498db;
         }
 
         #bottom-square {
-            top: 60%; /* Just below the top square */
+            top: 10%; /* Bottom square positioned slightly below the baseline */
             background-color: #e74c3c;
         }
     </style>
@@ -45,9 +45,9 @@
     const topSquare = document.getElementById('top-square');
     const bottomSquare = document.getElementById('bottom-square');
 
-    // Set the initial position of the top square
-    const baseline = 50; // Baseline at 50% from the top
-    const maxHeight = 20; // Maximum height (how far the square can move up)
+    // Set the baseline and maximum height of the movement
+    const baseline = 0; // Baseline at 0% from the top (on top of the bottom square)
+    const maxHeight = 50; // Maximum height (how far the square can move up)
 
     // Set up the audio context to measure voice loudness
     const audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -80,10 +80,10 @@
         const averageLoudness = sum / bufferLength;
         const normalizedLoudness = averageLoudness / 255; // Normalize to 0 - 1 range
 
-        // Calculate how much to move the square
+        // Calculate how much to move the square based on loudness
         const movement = (1 - normalizedLoudness) * maxHeight;
 
-        // Move the square based on the loudness of the voice
+        // Move the square up based on loudness
         topSquare.style.top = `${baseline - movement}%`; // Move up based on loudness
 
         // Continue monitoring audio in real-time
