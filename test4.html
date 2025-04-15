@@ -5,17 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Voice-Controlled Box Movement</title>
   <style>
-    body {
-      margin: 0;
-      padding: 0;
-      height: 100vh;
-      overflow: hidden;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      position: relative;
-      background-color: #f0f0f0;
-    }
     .square {
       width: 100px;
       height: 100px;
@@ -81,7 +70,7 @@
       const normalizedLoudness = averageLoudness / 128; // Normalize to a 0-1 scale (128 is the middle value)
 
       // Increase sensitivity by multiplying by 100
-      const movement = normalizedLoudness * maxHeight * 50;  // Increase the movement by 100 times
+      const movement = normalizedLoudness * maxHeight * 3;  // Increase the movement by 100 times
 
       // Log the loudness and movement values for debugging
       console.log("Loudness:", normalizedLoudness, "Movement:", movement);
