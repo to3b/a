@@ -1,35 +1,35 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Voice-Controlled Box Movement with Debug Logging</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Voice-Controlled Box Movement</title>
   <style>
     body {
       margin: 0;
       padding: 0;
       height: 100vh;
       overflow: hidden;
-      background-color: #ecf0f1;
       display: flex;
       justify-content: center;
       align-items: center;
       position: relative;
+      background-color: #f0f0f0;
     }
     .square {
       width: 100px;
       height: 100px;
       position: absolute;
-      transition: top 0.1s ease-in-out; /* Smooth transition for movement */
+      transition: top 0.1s ease-in-out;
     }
     #top-square {
-      top: 0%; /* Baseline: exactly on top of the bottom square */
+      top: 0%;  /* Starts at the top */
       left: 50%;
       transform: translateX(-50%);
       background-color: #3498db;
     }
     #bottom-square {
-      top: 120px;  /* Fixed position below the top square for visibility */
+      top: 120px;  /* Below the top square */
       left: 50%;
       transform: translateX(-50%);
       background-color: #e74c3c;
@@ -43,14 +43,16 @@
 
   <script>
     const topSquare = document.getElementById('top-square');
-    const maxHeight = 50;  // Max upward movement percentage (0-100%)
+    const maxHeight = 50;  // Maximum upward movement in percentage (0-100%)
 
+    // Set up Web Audio API
     const audioContext = new (window.AudioContext || window.webkitAudioContext)();
     const analyser = audioContext.createAnalyser();
-    analyser.fftSize = 256;
+    analyser.fftSize = 256;  // Set analyzer FFT size (this defines frequency resolution)
     const bufferLength = analyser.frequencyBinCount;
     const dataArray = new Uint8Array(bufferLength);
 
+    // Request access to the microphone
     navigator.mediaDevices.getUserMedia({ audio: true })
       .then(stream => {
         console.log("Microphone access granted.");
@@ -62,30 +64,31 @@
         console.error('Error accessing microphone:', error);
       });
 
+    // Function to monitor audio levels and move the square based on volume
     function monitorAudio() {
       analyser.getByteFrequencyData(dataArray);
 
       let sum = 0;
+      // Calculate the average loudness from frequency data
       for (let i = 0; i < bufferLength; i++) {
         sum += dataArray[i];
       }
 
+      // Normalize the loudness (average value) to a range of 0 to 1
       const averageLoudness = sum / bufferLength;
-      const normalizedLoudness = averageLoudness / 255; // Normalize between 0 and 1
+      const normalizedLoudness = averageLoudness / 255; // Normalize to a 0-1 scale
 
-      // Log the loudness for debugging
-      console.log("Normalized Loudness:", normalizedLoudness);
+      // Calculate how much the top square should move
+      const movement = normalizedLoudness * maxHeight;  // Movement proportional to loudness
 
-      // Calculate movement as a percentage of maxHeight
-      const movement = normalizedLoudness * maxHeight;
-      
-      // Log the calculated movement for debugging
-      console.log("Calculated Movement (top value):", movement);
+      // Log the loudness and movement values for debugging
+      console.log("Loudness:", normalizedLoudness, "Movement:", movement);
 
-      // Apply the calculated top position
-      topSquare.style.top = `${-movement}%`; // Negative value to move the square upwards
+      // Move the top square according to the loudness (negative values move it up)
+      topSquare.style.top = `${-movement}%`;  // Move the square upwards based on loudness
 
-      requestAnimationFrame(monitorAudio); // Continue monitoring
+      // Continue monitoring the audio
+      requestAnimationFrame(monitorAudio);
     }
   </script>
 
