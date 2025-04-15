@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Voice-Controlled Square</title>
+    <title>Voice Controlled Box</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -11,24 +11,26 @@
             padding: 0;
             height: 100vh;
             overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #ecf0f1;
         }
-        
+
         .square {
             width: 100px;
             height: 100px;
             background-color: #3498db;
             position: absolute;
+            transition: top 0.3s ease; /* Smooth transition for moving the top square */
         }
 
         #top-square {
-            top: 10px;
-            left: 10px;
-            transition: top 0.2s ease, left 0.2s ease;
+            top: 50%;
         }
 
         #bottom-square {
-            bottom: 10px;
-            left: 10px;
+            top: 60%; /* Just below the top square */
             background-color: #e74c3c;
         }
     </style>
@@ -39,26 +41,12 @@
 <div id="bottom-square" class="square"></div>
 
 <script>
-    // Function to move the top square based on voice commands
-    function moveSquare(direction) {
-        const topSquare = document.getElementById("top-square");
-        const movementAmount = 50; // Pixels to move
+    const topSquare = document.getElementById('top-square');
+    const bottomSquare = document.getElementById('bottom-square');
 
-        const currentTop = parseInt(window.getComputedStyle(topSquare).top);
-        const currentLeft = parseInt(window.getComputedStyle(topSquare).left);
+    let isSpeaking = false;
 
-        if (direction === 'up') {
-            topSquare.style.top = `${currentTop - movementAmount}px`;
-        } else if (direction === 'down') {
-            topSquare.style.top = `${currentTop + movementAmount}px`;
-        } else if (direction === 'left') {
-            topSquare.style.left = `${currentLeft - movementAmount}px`;
-        } else if (direction === 'right') {
-            topSquare.style.left = `${currentLeft + movementAmount}px`;
-        }
-    }
-
-    // Set up voice recognition
+    // Set up the voice recognition
     const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
     recognition.lang = 'en-US';
     recognition.continuous = false;
@@ -66,21 +54,20 @@
 
     recognition.onstart = function() {
         console.log("Voice recognition started.");
+        isSpeaking = true;
+        topSquare.style.top = "40%";  // Move the top square up when speaking
+    };
+
+    recognition.onend = function() {
+        console.log("Voice recognition stopped.");
+        isSpeaking = false;
+        topSquare.style.top = "50%";  // Move the top square back to baseline when not speaking
     };
 
     recognition.onresult = function(event) {
-        const command = event.results[0][0].transcript.toLowerCase();
-        console.log("Voice Command: ", command);
-
-        if (command.includes('up')) {
-            moveSquare('up');
-        } else if (command.includes('down')) {
-            moveSquare('down');
-        } else if (command.includes('left')) {
-            moveSquare('left');
-        } else if (command.includes('right')) {
-            moveSquare('right');
-        }
+        // You can listen for words, but for now, just the presence of sound is enough
+        const command = event.results[0][0].transcript;
+        console.log("Heard:", command);
     };
 
     recognition.onerror = function(event) {
@@ -89,6 +76,13 @@
 
     // Start listening for voice commands
     recognition.start();
+
+    // Continuously monitor the microphone input to determine if someone is speaking
+    setInterval(function() {
+        if (!isSpeaking) {
+            topSquare.style.top = "50%";  // Reset top square to baseline if no speech
+        }
+    }, 2000);  // Check every 2 seconds if the user isn't speaking
 </script>
 
 </body>
