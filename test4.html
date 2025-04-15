@@ -3,42 +3,93 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fixed Div Example</title>
+    <title>Voice-Controlled Square</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
+            height: 100vh;
+            overflow: hidden;
         }
         
-        .content {
-            height: 1000px; /* Just for demonstration purposes */
-            background-color: #f0f0f0;
+        .square {
+            width: 100px;
+            height: 100px;
+            background-color: #3498db;
+            position: absolute;
         }
 
-        .fixed-div {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            background-color: #333;
-            color: white;
-            text-align: center;
-            padding: 10px;
-            z-index: 1000; /* Ensures it stays on top of other content */
+        #top-square {
+            top: 10px;
+            left: 10px;
+            transition: top 0.2s ease, left 0.2s ease;
+        }
+
+        #bottom-square {
+            bottom: 10px;
+            left: 10px;
+            background-color: #e74c3c;
         }
     </style>
 </head>
 <body>
 
-<div class="content">
-    <h1>Scroll down to see the fixed div!</h1>
-    <p>More content goes here...</p>
-</div>
+<div id="top-square" class="square"></div>
+<div id="bottom-square" class="square"></div>
 
-<div class="fixed-div">
-    This div stays at the bottom and doesn't move!
-</div>
+<script>
+    // Function to move the top square based on voice commands
+    function moveSquare(direction) {
+        const topSquare = document.getElementById("top-square");
+        const movementAmount = 50; // Pixels to move
+
+        const currentTop = parseInt(window.getComputedStyle(topSquare).top);
+        const currentLeft = parseInt(window.getComputedStyle(topSquare).left);
+
+        if (direction === 'up') {
+            topSquare.style.top = `${currentTop - movementAmount}px`;
+        } else if (direction === 'down') {
+            topSquare.style.top = `${currentTop + movementAmount}px`;
+        } else if (direction === 'left') {
+            topSquare.style.left = `${currentLeft - movementAmount}px`;
+        } else if (direction === 'right') {
+            topSquare.style.left = `${currentLeft + movementAmount}px`;
+        }
+    }
+
+    // Set up voice recognition
+    const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+    recognition.lang = 'en-US';
+    recognition.continuous = false;
+    recognition.interimResults = false;
+
+    recognition.onstart = function() {
+        console.log("Voice recognition started.");
+    };
+
+    recognition.onresult = function(event) {
+        const command = event.results[0][0].transcript.toLowerCase();
+        console.log("Voice Command: ", command);
+
+        if (command.includes('up')) {
+            moveSquare('up');
+        } else if (command.includes('down')) {
+            moveSquare('down');
+        } else if (command.includes('left')) {
+            moveSquare('left');
+        } else if (command.includes('right')) {
+            moveSquare('right');
+        }
+    };
+
+    recognition.onerror = function(event) {
+        console.error("Voice recognition error", event.error);
+    };
+
+    // Start listening for voice commands
+    recognition.start();
+</script>
 
 </body>
 </html>
